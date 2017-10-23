@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Surf Forcast</title>
+    <script src="d3.min.js" charset="utf-8"></script>
+    <style type="text/css">
+      text {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 24px;
+      }
+</style>
+<style type="text/css">
+         #graph {
+          margin: 2em 1em;
+          border: 1px solid black;
+        }
+        
+        .axis path,
+        .axis line {
+          fill: none;
+          stroke: black;
+          shape-rendering: crispEdges;
+        }
+     </style>
+</head>
+<body>
+    <p>Surf Spot:
+        <select id="selectsurf">
+          <option value="panamacity">Panama City Beach, FL</option>
+          <option value="santamonica">Santa Monica, CA</option>
+          <option value="manhattanbeach">Manhattan Beach, CA</option>
+        </select>
+    </p>
+    <p><text id="spot">panamacity</text>
+    <p><text id="date"></text></p>
+    <p><text id="time"></text></p>
+    <p><text id="primarysDuration"></text></p>
+    <p><text id="primaryswellDirectionAbv"></text></p>
+    <p><text id="windSpeed"></text></p>
+    <p><text id="windDirection"></text></p>
+    <p><text id="windDirectionAbv"></text></p>
+    <p><text id="weather"></text></p>
+    <p><text id="temp"></text></p>
+    <p><div id="graph"></div></p>
+      <script>
+          var ds;
+          console.log("1");
+          
+           
+           function loaddata()
+           {
+              d3.json("surfspots.json", function(error, data) {
+                  
+                  console.log("1.1");      
+                  //check the file loaded properly
+                  if (error) {  //is there an error?
+                      console.log(error);  //if so, log it to the console
+                  } else {      //If not we're golden!
+                      console.log("loaded");      
+                      console.log(data);   //Now show me the money!
+                      ds=data; //put the data in the global var
+                  }
+                  
+                  updatelabel(0);
+              });  
+           }
+           
+          function updatelabel(index)
+          {
+              console.log("3");   
+            d3.select('#date')
+              .text(ds.samples[index].date);
+              
+            d3.select('#time')
+              .text(ds.samples[index].time);
+              
+            d3.select('#primarysDuration')
+              .text(ds.samples[index].primarysDuration);
+            
+            d3.select('#primaryswellDirectionAbv')
+              .text(ds.samples[index].primaryswellDirectionAbv);
+              
+            d3.select('#windSpeed')
+              .text(ds.samples[index].windSpeed);
+            
+            d3.select('#windDirection')
+              .text(ds.samples[index].windDirection);
+              
+            d3.select('#windDirectionAbv')
+              .text(ds.samples[index].windDirectionAbv);
+              
+            d3.select('#primaryswellDirectionAbv')
+              .text(ds.samples[index].primaryswellDirectionAbv);
+              
+            d3.select('#weather')
+              .text(ds.samples[index].weather);
+              
+            d3.select('#temp')
+              .text(ds.samples[index].temp);
+              
+          }
+            
+          d3.select("#selectsurf")
+            .on("change", function(){
+                
+                var sel = d3.select('#selectsurf').node().value;
+                d3.select("#spot")
+                  .text(sel);
+            });
+        
+        //Sine Wave Code Start here  
+        var width = 600,
+        height = 300,
+        margin = 0;
+        
+        var feet = 2*(height/1000);
+        
+        var svg = d3.select('#graph')
+          .append('svg')
+          .style({
+            'width': width + 2 * margin,
+            'height': height + 2 * margin
+          });
+        
+        var g = svg.append('g')
+          .attr('transform', 'translate(' + margin + ', ' + margin + ')');
+        
+        var sine = d3.range(0, 5).map(function(k) {
+          //var value = [0.5 * k * Math.PI, Math.sin(0.5 * k * Math.PI)];
+          var value = [.5 * k * Math.PI, feet*Math.sin(.5 * k * Math.PI)];
+          return value;
+        });
+        
+        var xScale = d3.scale.linear()
+          .range([0, width - margin])
+          .domain(d3.extent(sine, function(d) {
+            return d[0];
+          }));
+        
+        var yScale = d3.scale.linear()
+          .range([height - margin, 0])
+          .domain([-1, 1]);
+        
+        var xAxis = d3.svg.axis()
+          .scale(xScale)
+          .orient('bottom');
+        
+        var yAxis = d3.svg.axis()
+          .scale(yScale)
+          .orient('left');
+        
+        var line = d3.svg.line()
+          .x(function(d) {
+            return xScale(d[0]);
+          })
+          .y(function(d) {
+            return yScale(d[1]);
+          });
+        
+        g.append('path')
+          .datum(sine)
+          .attr('d', line.interpolate('basis'))
+          .attr({
+            'stroke': 'black',
+            'stroke-width': 1,
+            fill: 'none'
+          });
+          
+          loaddata();
+          updatelabel();
+    </script>
+
+</body>
+</html>

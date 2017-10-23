@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="d3.min.js" charset="utf-8"></script>
+    </head>
+    <body>
+        <div id="bezier-demo"></div>
+    <script>
+          
+         var bezierLine = d3.svg.line()
+    .x(function(d) { return d[0]; })
+    .y(function(d) { return d[1]; })
+    .interpolate("cardinal");
+
+    var svg = d3.select("#bezier-demo")
+        .append("svg")
+        .attr("width", 300)
+        .attr("height", 150);
+    
+    svg.append('path')
+        .attr("d", bezierLine([[0, 150], [25, 70], [50, 100], [100, 50], [150, 20], [200, 130], [300, 150]]))
+        .attr("stroke", "red")
+        .attr("stroke-width", 1)
+        .attr("fill", "none");
+               
+    </script>
+    
+    </body>
+</html>

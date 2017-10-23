@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Surf Forcast</title>
+    <script src="d3.min.js" charset="utf-8"></script>
+     <style type="text/css">
+         #graph {
+          margin: 2em 1em;
+          border: 1px solid black;
+        }
+        
+        .axis path,
+        .axis line {
+          fill: none;
+          stroke: black;
+          shape-rendering: crispEdges;
+        }
+     </style>
+  
+</head>
+<body>
+    <div id="graph"></div>
+       <script type="text/javascript">
+         var width = 600,
+          height = 300,
+          margin = 0,
+          feet = 2*(height/1000);
+        
+        var svg = d3.select('#graph')
+          .append('svg')
+          .style({
+            'width': width + 2 * margin,
+            'height': height + 2 * margin
+          });
+        
+        var g = svg.append('g')
+          .attr('transform', 'translate(' + margin + ', ' + margin + ')');
+        
+        var sine = d3.range(0, 5).map(function(k) {
+          //var value = [0.5 * k * Math.PI, Math.sin(0.5 * k * Math.PI)];
+          var value = [.5 * k * Math.PI, feet*Math.sin(.5 * k * Math.PI)];
+          return value;
+        });
+        
+        var xScale = d3.scale.linear()
+          .range([0, width - margin])
+          .domain(d3.extent(sine, function(d) {
+            return d[0];
+          }));
+        
+        var yScale = d3.scale.linear()
+          .range([height - margin, 0])
+          .domain([-1, 1]);
+        
+        var xAxis = d3.svg.axis()
+          .scale(xScale)
+          .orient('bottom');
+        
+        var yAxis = d3.svg.axis()
+          .scale(yScale)
+          .orient('left');
+        
+        var line = d3.svg.line()
+          .x(function(d) {
+            return xScale(d[0]);
+          })
+          .y(function(d) {
+            return yScale(d[1]);
+          });
+        
+        g.append('path')
+          .datum(sine)
+          .attr('d', line.interpolate('basis'))
+          .attr({
+            'stroke': 'black',
+            'stroke-width': 1,
+            fill: 'none'
+          });
+        
+        /*g.append('g')
+          .classed('axis', true)
+          .attr('transform', 'translate(0, ' + (height -  margin) + ')')
+          .call(xAxis);
+        
+        g.append('g')
+          .classed('axis', true)
+          .call(yAxis);
+          */
+     </script>
+</body>
+</html>

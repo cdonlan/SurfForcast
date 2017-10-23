@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Surf Forcast</title>
+    <script src="d3.min.js" charset="utf-8"></script>
+	<script src="d3.windArrow.js" charset="utf-8"></script>
+	<script src="wave.js" charset="utf-8"></script>
+
+	<link rel="stylesheet" href="bootstrap.min.css">
+	
+    <style type="text/css">
+      text {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 24px;
+      }
+	  
+	  td, th {
+		text-align: left;
+
+	  }
+</style>
+<style type="text/css">
+         #graph {
+          margin: 2em 1em;
+          width:50px;
+        }
+        
+        .axis path,
+        .axis line {
+          fill: none;
+          stroke: black;
+          shape-rendering: crispEdges;
+        }
+     </style>
+</head>
+<body>
+    <p>Surf Spot:
+        <select id="selectsurf">
+          <option value="panamacity">Panama City Beach, FL</option>
+          <option value="santamonica">Santa Monica, CA</option>
+          <option value="manhattanbeach">Manhattan Beach, CA</option>
+        </select>
+	</p>
+	<br>
+	<br>
+	<p> <text id="spot">Panama City Beach, FL</text></p>
+	<br>
+	<br>
+	<p>
+
+	<table id="dataTable" class="table table-striped table-hover" >
+		<thead>
+			<tr class="info">
+				<th>Date</th>
+				<th>Time</th>
+				<th>Swell</th>
+				<th>Swell Height</th>
+				<th>Duration</th>
+				<th>Wind Speed</th>
+				<th>Swell Direction</th>
+				<th>Wind Direction</th>
+				<th>Weather</th>
+				<th>Temp</th>
+			</tr>
+		</thead>
+	</table>
+	</p>
+      <script>
+      
+      
+          var ds;
+          
+           
+           function loaddata()
+           {
+              d3.json("surfspots.json", function(error, data) {
+                  
+                  console.log("1.1");      
+                  //check the file loaded properly
+                  if (error) {  //is there an error?
+                      console.log(error);  //if so, log it to the console
+                  } else {      //If not we're golden!
+                      console.log("loaded");      
+                      ds = data; //put the data in the global var
+					  //console.log(ds);
+                  }
+                  
+                 var p = new Wave(10,20);
+                  console.log("height is " + p.height);
+				  createTable(ds);
+              });  
+           }
+		   
+		  function createTable(index){
+			
+			var table = d3.select('table').append('tbody');
+				
+				d3.selectAll('tbody').attr('id', 'tableBody');
+				
+				
+				ds.samples.forEach(function(sample, index) {
+				
+					//console.log(sample);
+					var graphId = "graph" + index;
+					
+					
+					var tr = table.selectAll('tr')
+					.data(ds.samples).enter()
+					.append('tr');
+					
+					tr.append('td')
+					.html(function(m) { return m.date; });
+					
+					
+					tr.append('td')
+					.html(function(m) { return m.time; });
+					
+					
+					// wave 
+					tr.append('td')
+					.attr("id", "wavecol")
+					.html(function(m) {
+						return "<span id=wave"+m.id+"></span>"});
+					/*
+					d3.select("#wavecol")
+						.append("span")
+						.attr("id",graphId);
+					*/
+					//console.log("waveid is" + index);
+					
+					tr.append('td')
+					.html(function(m) {
+						GetWave(m.primaryswellHeight,"wave"+m.id);
+						return m.primaryswellHeight; });
+					
+					tr.append('td')
+					.html(function(m) { return m.primarysDuration; });
+					
+					tr.append('td')
+					.html(function(m) { return m.windSpeed; });
+					
+					
+					tr.append('td')
+					.html(function(m) { return m.primaryswellDirectionAbv; });
+					
+					
+					tr.append('td')
+					.html(function(m) { return m.windDirectionAbv; });
+					
+					tr.append('td')
+					.html(function(m) { return m.weather; });
+					
+					tr.append('td')
+					.html(function(m) { return m.temp; });
+					
+					
+				});
+				
+				
+				var rows = d3.selectAll('tr');
+				
+				var rowCnt = 0;
+				
+				rows.each(function(row){
+					
+					if(rowCnt > 0){
+					
+					
+						var windSpeed = this.__data__.windSpeed;
+						
+						if(windSpeed > 20){
+						
+							this.classList.add("danger");
+						
+						}
+						else if(windSpeed >= 10 && windSpeed < 20){
+							
+							this.classList.add("warning");
+							
+						}
+						else if(windSpeed < 10){
+							
+							this.classList.add("success");
+							
+						}
+					
+					}
+					
+					rowCnt = rowCnt + 1;
+					
+				});
+				
+			
+		  }
+           
+       function GetWave(waveheight,id)
+       {
+	       //Sine Wave Code Start here  
+	        var width = 200,
+	        height = 50,
+	        margin = 05;
+	        
+	        console.log("waveheight = " + waveheight);
+	        //maybe its coming over as a string?
+	        var rounded = Math.round(waveheight*1);
+	        console.log("rounded = " + rounded);
+	        var feet = rounded*(height/250);
+	        
+	        console.log("Id is " +id);
+	        var svg = d3.select("#"+id)
+	          .append('svg')
+	          .style({
+	            'width': width + 2 * margin,
+	            'height': height + 2 * margin
+	          });
+	         
+	        
+	        var g = svg.append('g')
+	          .attr('transform', 'translate(' + margin + ', ' + margin + ')');
+	        
+	        var sine = d3.range(0, 5).map(function(k) {
+	          //var value = [0.5 * k * Math.PI, Math.sin(0.5 * k * Math.PI)];
+	          var value = [.5 * k * Math.PI, feet*Math.sin(.5 * k * Math.PI)];
+	          return value;
+	        });
+	        
+	        var xScale = d3.scale.linear()
+	          .range([0, width - margin])
+	          .domain(d3.extent(sine, function(d) {
+	            return d[0];
+	          }));
+	        
+	        var yScale = d3.scale.linear()
+	          .range([height - margin, 0])
+	          .domain([-1, 1]);
+	        
+	        var xAxis = d3.svg.axis()
+	          .scale(xScale)
+	          .orient('bottom');
+	        
+	        var yAxis = d3.svg.axis()
+	          .scale(yScale)
+	          .orient('left');
+	        
+	        var line = d3.svg.line()
+	          .x(function(d) {
+	            return xScale(d[0]);
+	          })
+	          .y(function(d) {
+	            return yScale(d[1]);
+	          });
+	        
+	        g.append('path')
+	          .datum(sine)
+	          .attr('d', line.interpolate('basis'))
+	          .attr({
+	            'stroke': 'black',
+	            'stroke-width': 1,
+	            fill: 'none'
+	          });
+       }
+          
+            
+          d3.select("#selectsurf")
+            .on("change", function(){
+                
+             //   var sel = d3.select('#selectsurf').node().value;
+             //   d3.select("#spot")
+             //     .text(sel);
+            });
+          
+          loaddata();
+    </script>
+</body>
+</html>
